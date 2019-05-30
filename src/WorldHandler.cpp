@@ -7,42 +7,18 @@ WorldHandler::WorldHandler(std::size_t height, std::size_t width):
     height(height), width(width) {
         worldCells.reserve(height*width);
         for (std::size_t i = 0; i < height*width; i++){
-            worldCells.push_back(false);
+            worldCells.push_back(WorldHandler::DEAD);
         }
     }
 
 
-void WorldHandler::insertCells(const std::string & filename, std::size_t x, std::size_t y){
-    std::ifstream fs;
-    try
-    {
-        fs.open(filename, std::fstream::in);
-    }
-    catch(const std::exception& e)
-    {
-        assert(false && e.what());
-    }
-
-    auto it = worldCells.begin() + y*width + x;
-
-    std::string row;
-    while(getline(fs, row)){
-        auto prevLineIt = it;
-
-        std::for_each(row.begin(), row.end(), 
-            [&](const char & s) {
-                if (s == 'O' || s == '0'){
-                    *it = true;
-                }
-                else if (s == '.'){
-                    *it = false;
-                }
-                else {
-                    assert(false && "Unknown character in cell file");
-                }
-                ++it;
-            });
-        it = prevLineIt + width;
+void WorldHandler::insertCells(const CellPattern & pat, std::size_t x, std::size_t y){
+    auto outputIt = getSquareIterator(x,y, pat.getWidth());
+    auto inputIt = pat.getCells().begin();
+    while (inputIt != pat.getCells().end()){
+        outputIt.set(*inputIt);
+        ++outputIt;
+        ++inputIt;
     }
 }
 
@@ -53,11 +29,11 @@ void WorldHandler::generateNextGeneration() {
             switch (countNeighbours(x,y))
             {
             case 3:
-                worldCells[y*width + x] = true;
+                worldCells[y*width + x] = WorldHandler::ALIVE;
             case 2:
                 break;
             default:
-                worldCells[y*width + x] = false;
+                worldCells[y*width + x] = WorldHandler::DEAD;
                 break;
             }     
         }
@@ -80,4 +56,9 @@ int WorldHandler::countNeighbours(std::size_t x, std::size_t y) const {
     }
     return n;
     
+}
+
+WorldHandler::WHIterator WorldHandler::getSquareIterator(std::size_t x, std::size_t y, std::size_t sqWidth) {
+    auto it = worldCells.begin() + y*this->width + x;
+    return WorldHandler::WHIterator(it, this->width, sqWidth);
 }

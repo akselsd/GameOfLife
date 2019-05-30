@@ -1,13 +1,14 @@
 #include "WorldHandler.hpp"
 #include "GraphicsManager.hpp"
+#include "CellPattern.hpp"
 #include <iostream>
 
 
 int main() {
     WorldHandler cells(80, 80);
-    cells.insertCells("gun.txt", 20,20);
+    cells.insertCells(CellPattern::Gun, 20,20);
     
-    GraphicsManager gManager(cells, 60);
+    GraphicsManager gManager(cells, 30);
 
     while (gManager.isWindowOpen())
     {
@@ -16,6 +17,5 @@ int main() {
         }
         gManager.drawCellsToWindow(cells);
         cells.generateNextGeneration();
-    }
-        
+    }        
 }
